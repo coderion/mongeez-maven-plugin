@@ -1,6 +1,8 @@
 package pl.coderion.mongodb;
 
 import com.mongodb.Mongo;
+import com.mongodb.MongoURI;
+
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -23,6 +25,9 @@ public class MongeezMavenPlugin extends AbstractMojo {
 
     @Parameter(defaultValue = "src/main/mongeez/mongeez.xml")
     private File changeLogFile;
+
+    @Parameter(defaultValue = "")
+    private String dbUri;
 
     @Parameter(defaultValue = "localhost")
     private String dbHostName;
@@ -62,7 +67,12 @@ public class MongeezMavenPlugin extends AbstractMojo {
 
                 final Mongeez mongeez = new Mongeez();
                 mongeez.setFile(new FileSystemResource(changeLogFile));
-                mongeez.setMongo(new Mongo(getDbHostName(), Integer.valueOf(getDbPort())));
+                if(null != getDbUri() && !getDbUri().isEmpty()) {
+                	MongoURI mongoURI = new  MongoURI(getDbUri());
+                    mongeez.setMongo(new Mongo(mongoURI));
+                } else {
+                    mongeez.setMongo(new Mongo(getDbHostName(), Integer.valueOf(getDbPort())));
+                }
                 mongeez.setDbName(getDbName());
 
                 if (Boolean.TRUE.equals(getDbAuth())) {
@@ -77,7 +87,15 @@ public class MongeezMavenPlugin extends AbstractMojo {
         }
     }
 
-    public String getDbHostName() {
+    public String getDbUri() {
+		return dbUri;
+	}
+
+	public void setDbUri(String dbUri) {
+		this.dbUri = dbUri;
+	}
+
+	public String getDbHostName() {
         return dbHostName;
     }
 
